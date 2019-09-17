@@ -1,6 +1,11 @@
 .go-back {
     cursor: pointer;
-    padding-top: 50px
+    padding-top: 50px;
+    display: flex;
+}
+
+.info-container p{
+    text-align: justify
 }
 
 .go-back span{

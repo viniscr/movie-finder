@@ -1,6 +1,8 @@
 import React from 'react';
 import "./MovieInfo.css"
 
+import notFound from '../../assets/image-not-found.png'
+
 const MovieInfo = (props) => {
     
     return (
@@ -11,7 +13,7 @@ const MovieInfo = (props) => {
             </div>
             <div className="row">
                 <div className="col s12 m4">
-                    { props.currentMovie.poster_path == null ? <img className="card-image" src={"https://s3-ap-southeast-1.amazonaws.com/upcode/static/default-image.jpg"} alt="card-image" /> :
+                    { props.currentMovie.poster_path == null ? <img className="card-image" src={notFound} alt="card-image" /> :
                         <img className="card-image" src={`http://image.tmdb.org/t/p/w500${props.currentMovie.poster_path}`} alt="card-image" />
                     }           
                 </div>
