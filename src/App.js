@@ -1,10 +1,13 @@
 import React, {Component}  from 'react';
 
-import Nav from "./components/Nav"
-import SearchArea from "./components/SearchArea"
-import MovieList from "./components/MovieList"
+import Nav from "./components/Nav/Nav"
+import SearchArea from "./components/SearchArea/SearchArea"
+import MovieList from "./components/MovieList/MovieList"
 import Pagination from "./components/Pagination"
-import MovieInfo from "./components/MovieInfo"
+import Loading from "./components/Loading/Loading"
+import LoadMoreBtn from "./components/LoadMoreBtn/LoadMoreBtn"
+import MovieInfo from "./components/MovieInfo/MovieInfo"
+import { moviesUpcoming, moviesSearch } from './helpers/Requests';
 
 class App extends Component {
   constructor() {
@@ -14,9 +17,11 @@ class App extends Component {
       searchTerm: '',
       totalResults: 0,
       currentPage: 1,
-      currentMovie: null
+      currentMovie: null,
+
     }
-    this.apiKey = '1f54bd990f1cdfb230adb312546d765d'
+    this.apiKey = '1f54bd990f1cdfb230adb312546d765d';
+    this.apiUrl = 'http://localhost:3001/movies';
   
   }
   
@@ -24,23 +29,18 @@ class App extends Component {
     this.loadMovies();
   }
 
-  loadMovies = () => {
-    fetch(`https://api.themoviedb.org/3/movie/upcoming?api_key=${this.apiKey}`)
-    .then(data => data.json())
-    .then(data => {
-      console.log(data);
-      this.setState( { movies:[...data.results], totalResults: data.total_results } )
-    });
+  loadMovies = async (page) => {
+    let data = await moviesUpcoming(page)
+
+    this.setState( { movies:[...this.state.movies, ...data], totalResults: data.total_results } )
+    
   }
 
-  handleSubmit = (e) => {
+  handleSubmit = async (e) => {
     e.preventDefault();
-    fetch(`https://api.themoviedb.org/3/search/movie?api_key=${this.apiKey}&query=${this.state.searchTerm}`)
-    .then(data => data.json())
-    .then(data => {
-      console.log(data);
-      this.setState( { movies:[...data.results], totalResults: data.total_results } )
-    });
+    let data = await moviesSearch(this.state.searchTerm)
+    this.setState( { movies:[...data], totalResults: data.total_results } )
+    
   };
 
   handleChange = (e) => {
@@ -48,13 +48,27 @@ class App extends Component {
   };
 
   nextPage = (pageNumber) => {
-    fetch(`https://api.themoviedb.org/3/movie/upcoming?api_key=${this.apiKey}&page=${pageNumber}`)
+    fetch(`${this.apiUrl}/upcoming?page=${pageNumber}`)
     .then(data => data.json())
     .then(data => {
       console.log(data);
       this.setState( { movies:[...data.results], currentPage: pageNumber } )
     });
   }
+
+  loadMoreItems = () => {
+    this.setState({
+      loading: true
+    });
+
+    if(this.state.searchTerm === ""){
+      this.loadMovies(this.state.currentPage + 1)
+    }else{
+      this.handleSubmit(this.state.currentPage+1)
+    }
+
+    this.setState({currentPage: this.state.currentPage + 1, loading: false})
+  };
 
   viewMovieInfo = (id) => {
     const filteredMovie = this.state.movies.filter(movie => movie.id == id )
@@ -75,7 +89,10 @@ class App extends Component {
       <div className="App">
         <Nav/>
         { this.state.currentMovie == null ? <div><SearchArea handleSubmit={this.handleSubmit} handleChange={this.handleChange}/> <MovieList viewMovieInfo={this.viewMovieInfo} movies={this.state.movies}/></div> : <MovieInfo currentMovie={this.state.currentMovie} closeMovieInfo={this.closeMovieInfo}/> }
-      
+        {this.state.loading ? <Loading /> : null}
+        
+        <LoadMoreBtn text="Load More" onClick={this.loadMoreItems} />
+          
         {this.state.totalResults > 20 && this.state.currentMovie == null? <Pagination pages={numberPages} nextPage={this.nextPage} currentPage={this.state.currentPage}/> : ''}
       </div>
     );
