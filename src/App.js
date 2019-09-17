@@ -7,7 +7,7 @@ import Pagination from "./components/Pagination"
 import Loading from "./components/Loading/Loading"
 import LoadMoreBtn from "./components/LoadMoreBtn/LoadMoreBtn"
 import MovieInfo from "./components/MovieInfo/MovieInfo"
-import { moviesUpcoming, moviesSearch } from './helpers/Requests';
+import { moviesUpcoming, moviesSearch, movieDetails } from './helpers/Requests';
 
 class App extends Component {
   constructor() {
@@ -15,13 +15,11 @@ class App extends Component {
     this.state = {
       movies: [],
       searchTerm: '',
-      totalResults: 0,
+      hasMore: false,
       currentPage: 1,
       currentMovie: null,
-
+      loading: false
     }
-    this.apiKey = '1f54bd990f1cdfb230adb312546d765d';
-    this.apiUrl = 'http://localhost:3001/movies';
   
   }
   
@@ -30,52 +28,63 @@ class App extends Component {
   }
 
   loadMovies = async (page) => {
+    this.setState({ loading: true });
+
     let data = await moviesUpcoming(page)
 
-    this.setState( { movies:[...this.state.movies, ...data], totalResults: data.total_results } )
+    this.verifyHasMore(data)
+
+    this.setState( { movies:[...this.state.movies, ...data], loading: false} )
     
   }
 
   handleSubmit = async (e) => {
     e.preventDefault();
+
+    this.setState({movies: [],loading: true})
+
     let data = await moviesSearch(this.state.searchTerm)
-    this.setState( { movies:[...data], totalResults: data.total_results } )
+    
+    this.verifyHasMore(data)
+    
+    this.setState( { movies:[...data], loading: false } )
     
   };
+
+  handleSearch = async(page) => {
+    
+    this.setState({movies: [],loading: true})
+
+    let data = await moviesSearch(this.state.searchTerm, page);
+
+    this.verifyHasMore(data)
+
+    this.setState( { movies:[...this.state.movies, ...data], loading: false} )
+  }
+
+  verifyHasMore = (data) => {
+    data.length < 20 ? this.setState({hasMore: false}) : this.setState({hasMore: true})
+  }
 
   handleChange = (e) => {
     this.setState({ searchTerm: e.target.value })
   };
 
-  nextPage = (pageNumber) => {
-    fetch(`${this.apiUrl}/upcoming?page=${pageNumber}`)
-    .then(data => data.json())
-    .then(data => {
-      console.log(data);
-      this.setState( { movies:[...data.results], currentPage: pageNumber } )
-    });
-  }
-
   loadMoreItems = () => {
-    this.setState({
-      loading: true
-    });
-
+    
     if(this.state.searchTerm === ""){
       this.loadMovies(this.state.currentPage + 1)
     }else{
-      this.handleSubmit(this.state.currentPage+1)
+      this.handleSearch(this.state.currentPage + 1)
     }
 
-    this.setState({currentPage: this.state.currentPage + 1, loading: false})
+    this.setState({currentPage: this.state.currentPage + 1})
   };
 
-  viewMovieInfo = (id) => {
-    const filteredMovie = this.state.movies.filter(movie => movie.id == id )
+  viewMovieInfo =  async (id) => {
+    const filteredMovie = await movieDetails(id)
 
-    const newCurrentMovie = filteredMovie.length > 0 ? filteredMovie[0] : null
-
-    this.setState({ currentMovie: newCurrentMovie })
+    this.setState({ currentMovie: filteredMovie })
   }
 
   closeMovieInfo = () => {
@@ -83,17 +92,15 @@ class App extends Component {
   }
 
   render(){
-    const numberPages = Math.floor(this.state.totalResults / 20);
-
+    
     return (
       <div className="App">
         <Nav/>
-        { this.state.currentMovie == null ? <div><SearchArea handleSubmit={this.handleSubmit} handleChange={this.handleChange}/> <MovieList viewMovieInfo={this.viewMovieInfo} movies={this.state.movies}/></div> : <MovieInfo currentMovie={this.state.currentMovie} closeMovieInfo={this.closeMovieInfo}/> }
+        { this.state.currentMovie == null ? 
+            <div><SearchArea handleSubmit={this.handleSubmit} handleChange={this.handleChange}/> <MovieList loading={this.state.loading} viewMovieInfo={this.viewMovieInfo} movies={this.state.movies}/></div> : <MovieInfo currentMovie={this.state.currentMovie} closeMovieInfo={this.closeMovieInfo}/> }
         {this.state.loading ? <Loading /> : null}
-        
-        <LoadMoreBtn text="Load More" onClick={this.loadMoreItems} />
-          
-        {this.state.totalResults > 20 && this.state.currentMovie == null? <Pagination pages={numberPages} nextPage={this.nextPage} currentPage={this.state.currentPage}/> : ''}
+        {this.state.hasMore && this.state.currentMovie == null? <LoadMoreBtn text="Load More" onClick={this.loadMoreItems} /> : '' }
+
       </div>
     );
   }

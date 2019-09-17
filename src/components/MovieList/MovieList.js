@@ -1,5 +1,6 @@
 import React from 'react';
 import Movie from '../Movie/Movie';
+import "./MovieList.css"
 
 const MovieList = (props) =>{
 
@@ -14,6 +15,10 @@ const MovieList = (props) =>{
                                 <Movie key={i} viewMovieInfo={props.viewMovieInfo} movieId={movie.id} image={movie.poster_path} name={movie.title} genres={movie.genres} release_date={movie.release_date}/>
                             )
                         })
+                        
+                    }
+                    {
+                        props.movies.length == 0 && !props.loading ? <h5>Nenhum filme encontrado</h5> : ''
                     }
                 </div>
             </div>

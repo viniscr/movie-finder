@@ -15,8 +15,8 @@ const Movie = (props) =>{
                 </div>
                 <div className="card-content">
                     <strong>{props.name}</strong>
-                    <p>Genres: {props.genres.join(' ') || ''}</p>
-                    <p>Release Date: {props.release_date.substring(5).split("-").concat(props.release_date.substring(0,4)).join('/')}</p>
+                    <p><strong>Genres: </strong> {props.genres.join(' ') || ''}</p>
+                    <p><strong>Release Date: </strong> {props.release_date.substring(5).split("-").concat(props.release_date.substring(0,4)).join('/')}</p>
                 </div>
              </div>
         </div>

@@ -1,5 +1,3 @@
-import { parse, format } from 'date-fns'
-
 export const checkLocalStorageGenres = (key, defaultValue) => {
     const ls = localStorage.getItem(`${key}`)
         ? JSON.parse(localStorage.getItem(`${key}`)) || ""
@@ -15,16 +13,6 @@ export const transformMovie = (movies, genres) => {
     })
 
     return movies
-}
-
-export const formatDate = (formatDate) => {
-    let parsedDate = parse(formatDate);
-    let formatedDate = format(
-        new Date(parsedDate),
-        'MM/DD/YYYY'
-      )
-
-      return formatedDate
 }
 
 export const isEmpty = (obj) => {

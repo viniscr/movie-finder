@@ -1,4 +1,4 @@
-import { checkLocalStorageGenres, transformMovie, isEmpty } from './Functions'
+import { checkLocalStorageGenres, transformMovie, getMovieGenres, isEmpty } from './Functions'
 import httpRequest from './HttpRequest';
 
 
@@ -19,7 +19,7 @@ export const moviesUpcoming = async page => {
     }
 }
 
-export const moviesSearch = async (query) => {
+export const moviesSearch = async (query, page) => {
     try {
         let hasGenres = checkLocalStorageGenres('genres', null)
 
@@ -28,7 +28,7 @@ export const moviesSearch = async (query) => {
             localStorage.setItem('genres', JSON.stringify(hasGenres))
         }
 
-        const movies = await getMoviesSearch(query)
+        const movies = await getMoviesSearch(query, page)
         const moviesSearchWithGenres = transformMovie(movies, hasGenres)
         return moviesSearchWithGenres
     } catch (error) {
@@ -74,7 +74,7 @@ const getMoviesSearch = async (query, page) => {
 const getMovieDetails = async (movieId) => {
     try {
         const req = await httpRequest({
-            url: `/id=${movieId}`,
+            url: `/details/${movieId}`,
             method: 'GET'
         })
 

@@ -17,7 +17,6 @@ export default async ({ url, ...options }) => {
 
 		return await response.json();
 	} catch (error) {
-		console.log(error)
 		window.alert('Alguem erro aconteceu. Tente novamente, por favor.')
 	}
 };
